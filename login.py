@@ -1,49 +1,76 @@
 import streamlit as st
-import time
+from datetime import datetime
 
-# Page title
-st.title('Baby Login Form')
+# Initialize session state for storing user data
+if 'user_data' not in st.session_state:
+    st.session_state.user_data = {}
 
-# Guardian details
-st.subheader('Guardian Information')
-guardian_name = st.text_input('Guardian Name')
-relationship = st.radio('Relationship with Baby', ['MOM', 'DAD', 'UNCLE', 'AUNTY', 'OTHERS'])
-email = st.text_input('Email Address')
+def calculate_age_in_months(dob):
+    """Calculate age in months based on the date of birth."""
+    today = datetime.today()
+    age_in_months = (today.year - dob.year) * 12 + today.month - dob.month
+    return age_in_months
 
-# Email validation
-if email and '@' not in email:
-    st.error("Please enter a valid email address.")
+def sign_up():
+    st.header("Sign Up")
+    guardian_name = st.text_input("Guardian Name")
+    relationship = st.selectbox("Relationship with Baby", ["Mom", "Dad", "Uncle", "Aunty", "Others"])
+    email = st.text_input("Email Address")
 
-st.divider()
+    # Baby Information
+    st.subheader("Baby Information")
+    baby_name = st.text_input("Baby Name")
+    baby_gender = st.selectbox("Baby Gender", ["Male", "Female", "Other"])
+    date_of_birth = st.date_input("Date of Birth")
 
-# Baby details
-st.subheader('Baby Information')
-baby_name = st.text_input('Baby Name')
-gender = st.radio('Pick The Baby\'s Gender', ['Male', 'Female'])
-dob = st.date_input('Baby\'s Date of Birth')  # Date of Birth input
-age = st.slider('Baby Age (in Months)', 0, 48)
+    if st.button("Sign Up"):
+        # Check if email already exists
+        if email in st.session_state.user_data:
+            st.error("Email already registered. Please log in.")
+        else:
+            # Calculate age in months
+            age_in_months = calculate_age_in_months(date_of_birth)
 
-# Religion selection
-religion = st.selectbox('Religion', ['Islam', 'Christianity', 'Hinduism', 'Buddhism', 'Others'])
+            # Store user data in the session state dictionary
+            st.session_state.user_data[email] = {
+                'guardian_name': guardian_name,
+                'relationship': relationship,
+                'baby_name': baby_name,
+                'baby_gender': baby_gender,
+                'date_of_birth': date_of_birth,
+                'month': date_of_birth.strftime("%B"),
+                'age_in_months': age_in_months  # Store calculated age in months
+            }
+            st.success("Sign Up Successful! You can now log in.")
+            st.balloons()  # Add balloon effect
 
-# Form submission
-if st.button('Submit'):
-    # Simple validation
-    if not guardian_name or not email or not baby_name:
-        st.warning('Please fill in all required fields.')
-    else:
-        with st.spinner('Submitting...'):
-            time.sleep(2)  # Simulate a delay for submission
-        st.success(f'Form submitted successfully! \n Welcome {baby_name}!')
-        st.balloons()
+def login():
+    st.header("Login")
+    email = st.text_input("Email Address")
 
-        # Optionally display submitted information
-        st.write("### Submission Details")
-        st.write(f"Guardian Name: {guardian_name}")
-        st.write(f"Relationship with Baby: {relationship}")
-        st.write(f"Email: {email}")
-        st.write(f"Baby Name: {baby_name}")
-        st.write(f"Gender: {gender}")
-        st.write(f"Religion: {religion}")
-        st.write(f"Date of Birth: {dob}")
-        st.write(f"Age: {age} months")
+    if st.button("Login"):
+        if email in st.session_state.user_data:
+            user_info = st.session_state.user_data[email]
+            st.success(f"Login Successful! Welcome back, {user_info['guardian_name']}!")
+            st.write(f"Baby Name: {user_info['baby_name']}")
+            st.write(f"Baby Gender: {user_info['baby_gender']}")
+            st.write(f"Date of Birth: {user_info['date_of_birth']}")
+            st.write(f"Month: {user_info['month']}")
+            st.write(f"Age: {user_info['age_in_months']} months")  # Display age in months
+            st.balloons()  # Add balloon effect
+        else:
+            st.error("Email not found. Please sign up first.")
+
+def main():
+    st.title("Baby Care App")
+
+    menu = ["Sign Up", "Login"]
+    choice = st.sidebar.selectbox("Menu", menu)
+
+    if choice == "Sign Up":
+        sign_up()
+    elif choice == "Login":
+        login()
+
+if __name__ == "__main__":
+    main()

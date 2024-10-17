@@ -4,7 +4,7 @@ from openai import OpenAI
 #from google.colab import userdata
 #from IPython.display import Image
 
-client = st.secrets(api_key = os.environ['openai_api_key'])
+client = OpenAI(api_key = st.secrets['openai_api_key'])
 
 #Story
 def story_gen(prompt):
